@@ -4,7 +4,7 @@ func mapUserProfile(rawResponse ThreadsUserProfileResponse) interface{} {
 	userApiResponse := rawResponse.data.userData.user
 
 	// If the User field is empty, return nil
-	if (User{} == userApiResponse) {
+	if userApiResponse.username == "" {
 		return nil
 	}
 
