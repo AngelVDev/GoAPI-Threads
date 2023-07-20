@@ -2,8 +2,10 @@ package fetchbase
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 )
 
 func FetchBase(input FetchBaseInput) (map[string]interface{}, error) {
@@ -30,4 +32,28 @@ func FetchBase(input FetchBaseInput) (map[string]interface{}, error) {
 	json.Unmarshal(bodyBytes, &result)
 
 	return result, nil
+}
+
+func FetchUserIdByName(username string) (string, error) {
+	if IS_DEBUG {
+		fmt.Printf("https://www.threads.net/@%s\n", username)
+	}
+	resp, err := http.Get(fmt.Sprintf("https://www.threads.net/@%s", username))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	html, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	re := regexp.MustCompile(`"user_id":"(\d+)"`)
+	match := re.FindStringSubmatch(string(html))
+	if len(match) > 1 {
+		return match[1], nil
+	}
+
+	return "", nil
 }
