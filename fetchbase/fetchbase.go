@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"regexp"
+	"strings"
 )
 
 func FetchBase(input FetchBaseInput) (map[string]interface{}, error) {
@@ -49,11 +49,38 @@ func FetchUserIdByName(username string) (string, error) {
 		return "", err
 	}
 
-	re := regexp.MustCompile(`"user_id":"(\d+)"`)
-	match := re.FindStringSubmatch(string(html))
-	if len(match) > 1 {
-		return match[1], nil
+	match := extractUserID(string(html))
+	return match, nil
+}
+func extractUserID(html string) string {
+	startIndex := strings.Index(html, `"user_id":"`)
+	if startIndex == -1 {
+		return ""
 	}
 
-	return "", nil
+	endIndex := strings.Index(html[startIndex+len(`"user_id":"`):], `"`)
+	if endIndex == -1 {
+		return ""
+	}
+
+	return html[startIndex+len(`"user_id":"`) : startIndex+len(`"user_id":"`)+endIndex]
 }
+
+// func fetchUserProfile(userId, userName string) (string, error) {
+// 	if userName != "" && userId == "" {
+// 		fetchedUserId, err := FetchUserIdByName(userName)
+// 		if err != nil {
+// 			return "", err
+// 		}
+// 		userId = fetchedUserId
+// 	}
+
+// 	variables := map[string]string{"userID": userId}
+// 	documentId := USER_PROFILE
+// 	data, err := FetchBase(variables)
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	return mapUserProfile(data), nil
+// }
